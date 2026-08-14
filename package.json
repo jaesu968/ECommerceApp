@@ -3,13 +3,24 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "dev": "nodemon ./bin/www"
   },
   "dependencies": {
-    "cookie-parser": "~1.4.4",
+    "bcrypt": "^6.0.0",
     "debug": "~2.6.9",
+    "dotenv": "^17.4.2",
     "express": "^4.22.2",
+    "express-session": "^1.19.0",
     "http-errors": "~1.6.3",
-    "morgan": "^1.11.0"
+    "morgan": "^1.11.0",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "pg": "^8.23.0",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }
