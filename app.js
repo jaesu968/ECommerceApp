@@ -20,9 +20,14 @@ app.use(require('express-session')({
   resave: false,
   saveUninitialized: false
 })); 
+
+// wire up the passport strategy
+require('./config/passport');
+
 // intialize passport 
 app.use(passport.initialize());
 app.use(passport.session()); 
+
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
