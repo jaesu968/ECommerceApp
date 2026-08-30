@@ -73,3 +73,14 @@ ALTER TABLE "orders" ADD FOREIGN KEY ("customer_id") REFERENCES "customers" ("id
 ALTER TABLE "cart" ADD FOREIGN KEY ("customer_id") REFERENCES "customers" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "cart_items" ADD FOREIGN KEY ("album_id") REFERENCES "albums" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "cart_items" ADD CONSTRAINT cart_items_cart_album_unique UNIQUE ("cart_id", "album_id");
+
+ALTER TABLE "orders" ALTER COLUMN "date" SET DEFAULT NOW();
+
+-- ran the following in the terminal to : 
+--That UNIQUE constraint isn't just tidiness — it's what makes "add to cart" idempotent later.
+-- With it, you can write a single INSERT ... ON CONFLICT (cart_id, album_id) DO UPDATE SET item_quantity = cart_items.item_quantity + EXCLUDED.item_quantity,
+-- and adding the same album twice bumps the quantity instead of duplicating the row. 
+-- Without it you'd need a SELECT-then-branch, which has a race condition.
+
