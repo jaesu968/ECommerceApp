@@ -8,6 +8,8 @@ const dotenv = require('dotenv').config(); // import dotenv
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
+const albumsRouter = require('./routes/albums');
+const artistsRouter = require('./routes/artists');
 
 const app = express();
 
@@ -33,7 +35,8 @@ app.use(passport.session());
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/', authRouter);
-
+app.use('/albums', albumsRouter);
+app.use('/artists', artistsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
