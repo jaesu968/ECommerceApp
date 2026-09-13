@@ -22,7 +22,8 @@ function validateAlbumBody({ name, genre, price, artist_band_id}){
         return 'Genre must be 25 characters or less';
     }
     // validate artist band futher, make sure it is not malformed (it is a number)
-    if(artist_band_id && !Number.isInteger(Number(artist_band_id))){
+    // using regex 
+    if(artist_band_id && !/^\d+$/.test(String(artist_band_id))){
         return 'Invalid artist/band id';        
     }
     return null;
@@ -31,7 +32,8 @@ function validateAlbumBody({ name, genre, price, artist_band_id}){
 // helper function to validate an album id 
 function validateAlbumId(id){
     // return an error message if the id is not valid, or null if valid 
-    if(!Number.isInteger(Number(id))){
+    // use regex to check if the id is a number
+    if(!/^\d+$/.test(id)){
         return 'Invalid album id';
     }
     return null;
@@ -58,7 +60,8 @@ router.get('/', async function(req, res, next) {
         conditions.push(`a.artist_band_id = $${values.length}`);
     }
     // validation to see if there is malformed genre or artist, check if it is Numeric or a string 
-    if(artist && !Number.isInteger(Number(artist))){
+    // check using regex
+    if(artist && !/^\d+$/.test(artist)){
         return res.status(400).json({message: 'Invalid artist id'});
     }
     // use try-catch block to catch errors in case get query fails

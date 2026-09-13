@@ -6,7 +6,8 @@ const db = require('../db/pool'); // database to work with db pool
 // helper function to validate an arist_band id
 function validateArtistBandId(id){
     // return an error message if any of the required fields are missing, or null if valid 
-    if(id && !Number.isInteger(Number(id))){
+    // use regex to check if the id is a number
+    if(id && !(/^\d+$/.test(id))){
         return 'Invalid artist/band id';
     }
     return null;
@@ -24,7 +25,7 @@ function validateNameGenre(name, genre){
 // get the artist/band listing
 router.get('/', async function(req, res, next) {
     // destructure genre and artist from req.query
-    const { genre, artist } = req.query;
+    const { genre } = req.query;
     // variable to hold conditions 
     const conditions = []; 
     // variable to hold values 
