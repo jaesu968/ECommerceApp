@@ -95,12 +95,12 @@ describe('session lifecycle', () => {
     await agent.post('/register').send(sessionUser);
   });
 
-  test('GET /me is 401 before logging in', async () => {
-    const res = await agent.get('/me');
+  test('GET /users/me is 401 before logging in', async () => {
+    const res = await agent.get('/users/me');
     expect(res.status).toBe(401);
   });
 
-  test('GET /me returns the user after logging in', async () => {
+  test('GET users/me returns the user after logging in', async () => {
     const login = await agent
       .post('/login')
       .send({ username: sessionUser.username, password: sessionUser.password });
@@ -108,17 +108,17 @@ describe('session lifecycle', () => {
 
     // This is the deserializeUser proof: a separate request that only
     // works if the session cookie round-tripped and rehydrated req.user
-    const me = await agent.get('/me');
+    const me = await agent.get('/users/me');
     expect(me.status).toBe(200);
     expect(me.body.username).toBe(sessionUser.username);
     expect(me.body).not.toHaveProperty('password_hash');
   });
 
-  test('GET /me is 401 again after logging out', async () => {
+  test('GET users/me is 401 again after logging out', async () => {
     const out = await agent.post('/logout');
     expect(out.status).toBe(200);
 
-    const me = await agent.get('/me');
+    const me = await agent.get('/users/me');
     expect(me.status).toBe(401);
   });
 });
