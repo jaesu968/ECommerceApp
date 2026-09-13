@@ -49,7 +49,7 @@ passport.deserializeUser(async (id, done) => {
         // grab the first result 
         const user = result.rows[0];
         // return done(null, user) for callback
-        return done(null, user);
+        return done(null, user || false); // if user is not found, return false
     } catch (error) {
         // if there is an error, return done(error) for callback
         return done(error);
