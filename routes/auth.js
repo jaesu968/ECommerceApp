@@ -1,3 +1,4 @@
+// route for authentication
 const express = require('express'); // import express 
 const router = express.Router(); // import router for routing
 const passport = require('passport'); // import passport for authentication / authorization flow 
@@ -71,15 +72,6 @@ router.post('/logout', (req, res, next) => {
     });
 }); 
 
-// add a temporary GET /me route for testing 
-router.get('/me', (req, res, next) => {
-    // if user is not authenticated , return 401
-    if(!req.isAuthenticated()){
-        return res.status(401).json({error: 'Not logged in'});
-    } else {
-        // if user is authenticated , return the user
-        res.json(req.user);
-    }
-})
+
 
 module.exports = router;
