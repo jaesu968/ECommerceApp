@@ -1,6 +1,6 @@
-// Swagger file for testing end points 
+// Swagger file for testing end points
 const path = require('path');
-const swaggerJsdoc = require('swagger-jsdoc'); 
+const swaggerJsdoc = require('swagger-jsdoc');
 
 const options = {
     definition: {
@@ -16,7 +16,7 @@ const options = {
                 IdParam: {
                     in: 'path',
                     name: 'id',
-                    required: true, 
+                    required: true,
                     schema: { type: 'integer' }
                 },
             },
@@ -112,6 +112,32 @@ const options = {
                         album_id: { type: 'integer', example: 1},
                         item_quantity: { type: 'integer', example: 1},
                         price: { type: 'string', example: '18.99'},
+                    },
+                },
+                RegisterInput: {
+                    type: 'object',
+                    required: ['username', 'password', 'email_address'],
+                    properties: {
+                        username: { type: 'string', maxLength: 20, example: 'johndoe'},
+                        password: { type: 'string', format: 'password', example: 'secret123'},
+                        email_address: { type: 'string', maxLength: 50, example: 'x@example.com'},
+                    },
+                },
+                LoginInput: {
+                    type: 'object',
+                    required: ['username', 'password'],
+                    properties: {
+                        username: { type: 'string', example: 'johndoe'},
+                        password: { type: 'string', format: 'password', example: 'secret123'},
+                    },
+                },
+                UserUpdateInput: {
+                    type: 'object',
+                    required: ['email_address'],
+                    properties: {
+                        name: { type: 'string', maxLength: 100, nullable: true },
+                        address: { type: 'string', maxLength: 100, nullable: true },
+                        email_address: { type: 'string', maxLength: 50},
                     },
                 },
                 Error: {
