@@ -39,6 +39,34 @@ function validateAlbumId(id){
     return null;
 }
 
+
+/**
+ * @openapi
+ * /albums: 
+ *   get:
+ *     summary: List albums, optionally filtered
+ *     tags: [Albums]
+ *     parameters:
+ *       - in: query
+ *         name: genre
+ *         schema: { type: string }
+ *         description: Exact genre match
+ *         example: Jazz
+ *       - in: query
+ *         name: artist
+ *         schema: { type: integer }
+ *         description: Filter by artist_band id
+ *     responses:
+ *        200:
+ *          description: Albums ordered by name 
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: array
+ *                items: { $ref: '#/components/schemas/Album' }
+ *        400: { $ref: '#/components/responses/BadRequest' }
+ *   
+ */
 /* Get albums listing. */
 router.get('/', async function(req, res, next) {
     // destructure genre and artist from req.query
@@ -78,6 +106,32 @@ router.get('/', async function(req, res, next) {
     }
 }); 
 
+/**
+ * @openapi
+ * /albums/{id}:
+ *   get:
+ *     summary: Get one album with its songs
+ *     tags: [Albums]
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdParam'
+ *     responses:
+ *       200:
+ *         description: The album, with a nested songs array
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Album'
+ *                 - type: object
+ *                   properties:
+ *                     artist_band_name: { type: string, nullable: true }
+ *                     songs:
+ *                       type: array
+ *                       items: { $ref: '#/components/schemas/Song' }
+ *       400: { $ref: '#/components/responses/BadRequest' }
+ *       404: { $ref: '#/components/responses/NotFound' }
+ */
+
 /* Get 1 album by id with it's artist and songs */
 router.get('/:id', async function(req, res, next) {
     // grab id from params and put into a variable for tracking 
@@ -110,6 +164,28 @@ router.get('/:id', async function(req, res, next) {
     }
 }); 
 
+/**
+ * @openapi
+ * /albums:
+ *   post:
+ *     summary: Create a new album
+ *     tags: [Albums]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AlbumInput'
+ *     responses:
+ *       201:
+ *         description: The album was created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Album'
+ *       400: { $ref: '#/components/responses/BadRequest' }
+ */
+
 // Post route to create a new album 
 router.post('/', async function(req, res, next) {
     // destructure name, genre, price from req.body 
@@ -135,6 +211,31 @@ router.post('/', async function(req, res, next) {
     }
 
 }); 
+
+/**
+ * @openapi
+ * /albums/{id}:
+ *   put:
+ *     summary: Update an existing album
+ *     tags: [Albums]
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdParam'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AlbumInput'
+ *     responses:
+ *       200:
+ *         description: The album was updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Album'
+ *       400: { $ref: '#/components/responses/BadRequest' }
+ *       404: { $ref: '#/components/responses/NotFound' }
+ */
 
 // Put route to update an existing album 
 router.put('/:id', async function(req, res, next) {
@@ -172,6 +273,26 @@ router.put('/:id', async function(req, res, next) {
         next(err); // anything else is a genuine server error
     }
 }); 
+
+/**
+ * @openapi
+ * /albums/{id}:
+ *   delete:
+ *     summary: Delete an existing album
+ *     tags: [Albums]
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdParam'
+ *     responses:
+ *       200:
+ *         description: The album was deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Album'
+ *       400: { $ref: '#/components/responses/BadRequest' }
+ *       404: { $ref: '#/components/responses/NotFound' }
+ *       409: { $ref: '#/components/responses/Conflict' }
+ */
 
 // DELETE route to delete an album 
 router.delete('/:id', async function(req, res, next) {
