@@ -2,9 +2,8 @@
 -- Safe to re-run: clears the catalog first.
 -- Run with: psql -d PhysicalCDStore -f db/seed.sql
 
-DELETE FROM songs;
-DELETE FROM albums;
-DELETE FROM artist_band;
+TRUNCATE songs, albums, artist_band RESTART IDENTITY CASCADE;
+
 
 INSERT INTO artist_band (name, genre) VALUES
   ('The Midnight Signal', 'Rock'),
