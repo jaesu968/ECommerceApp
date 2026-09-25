@@ -19,19 +19,19 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// setup express session 
+// setup express session
 app.use(require('express-session')({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false
-})); 
+}));
 
 // wire up the passport strategy
 require('./config/passport');
 
-// intialize passport 
+// intialize passport
 app.use(passport.initialize());
-app.use(passport.session()); 
+app.use(passport.session());
 
 
 app.use('/', indexRouter);
@@ -48,11 +48,11 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
-  console.error(err); 
-  const status = err.status || 500; 
+  const status = err.status || 500;
+  if(status >= 500) console.error(err);
   res.status(status).json({
     message: status === 500 ? 'Internal Server Error' : err.message,
-  }); 
+  });
 });
 
 module.exports = app;

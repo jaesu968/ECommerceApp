@@ -10,7 +10,7 @@ const db = require('../db/pool'); // can use the db pool to query the database
  * @openapi
  * /register:
  *   post:
- *     summary: regiter a new user
+ *     summary: register a new user
  *     tags: [Auth]
  *     requestBody:
  *       required: true

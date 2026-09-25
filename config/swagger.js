@@ -19,6 +19,18 @@ const options = {
                     required: true,
                     schema: { type: 'integer' }
                 },
+                CartIdParam: {
+                    in: 'path',
+                    name: 'cartId',
+                    required: true,
+                    schema: { type: 'integer' }
+                },
+                AlbumIdParam: {
+                    in: 'path',
+                    name: 'albumId',
+                    required: true,
+                    schema: { type: 'integer' }
+                },
             },
             schemas: {
                 AlbumInput: {
@@ -82,15 +94,6 @@ const options = {
                         customer_id: { type: 'integer', example: 1},
                     },
                 },
-                CartItem: {
-                    type: 'object',
-                    properties: {
-                        id: { type: 'integer', example: 1},
-                        cart_id: { type: 'integer', example: 1},
-                        album_id: { type: 'integer', example: 1},
-                        item_quantity: { type: 'integer', example: 1},
-                    },
-                },
                 Order: {
                     type: 'object',
                     properties: {
@@ -140,6 +143,40 @@ const options = {
                         email_address: { type: 'string', maxLength: 50},
                     },
                 },
+                CartItemInput: {
+                    type: 'object',
+                    required: ['album_id', 'item_quantity'],
+                    properties: {
+                        album_id: { type: 'integer', example: 3},
+                        item_quantity: { type: 'integer', minimum: 1, example: 2},
+                    },
+                },
+                QuantityInput: {
+                    type: 'object',
+                    required: ['item_quantity'],
+                    properties: {
+                        item_quantity: { type: 'integer', minimum: 1, example: 2},
+                    },
+                },
+                CartLine: {
+                    type: 'object',
+                    properties: {
+                        album_id: { type: 'integer', example: 3},
+                        name: { type: 'string', maxLength: 100, example: 'Blue Hour'},
+                        price: { type: 'string', example: '18.99'},
+                        item_quantity: { type: 'integer', example: 2},
+                        line_total: { type: 'string', example: '36.00'},
+                    },
+                },
+                CartDetail: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'integer', example: 1},
+                        customer_id: { type: 'integer', example: 7},
+                        items: { type: 'array', items: { $ref: '#/components/schemas/CartLine' } },
+                        total: { type: 'string', example: '36.00'},
+                    },
+                },
                 Error: {
                     type: 'object',
                     properties: {
@@ -167,6 +204,7 @@ const options = {
             { name: 'Users', description: 'User profiles'},
             { name: 'Albums', description: 'Product catalog'},
             { name: 'Artists', description: 'Artists and bands'},
+            { name: 'Cart', description: 'Shopping cart and checkout'},
         ]
     },
     apis: [path.join(__dirname, '../routes/*.js')],
