@@ -9,11 +9,19 @@ const newArtist = {
     genre: 'Test Genre'
 }; 
 
-// variable to hold created id 
+// variable to hold created id
 let createdId;
+// seeded rows are looked up by name, because their ids change whenever the seed is re-run
+let seededArtistWithAlbumsId;
 
-// before all set up an artist or band that can be worked with 
+// before all set up an artist or band that can be worked with
 beforeAll(async () => {
+    const artist = await db.query("SELECT id FROM artist_band WHERE name = 'The Midnight Signal'");
+    if (!artist.rows[0]) {
+        throw new Error('Seed data missing: run psql -d PhysicalCDStore -f db/seed.sql');
+    }
+    seededArtistWithAlbumsId = artist.rows[0].id;
+
     const res = await request(app).post('/artists').send(newArtist);
     createdId = res.body.id;
 }); 
@@ -49,8 +57,8 @@ describe('GET /artists', () => {
         expect(res.body.genre).toBe(newArtist.genre);
     }); 
     // test loading the albums where the array is not empty for a specific band or artist 
-    test(`GET /artists/2, should return a specific artist or band with albums`, async () => {
-        const res = await request(app).get(`/artists/2`);
+    test(`GET /artists/:id, should return a seeded artist or band with albums`, async () => {
+        const res = await request(app).get(`/artists/${seededArtistWithAlbumsId}`);
         const albums = res.body.albums;
         
         expect(res.status).toBe(200);
@@ -141,8 +149,8 @@ describe('DELETE /artists/:id', () => {
         expect(res.status).toBe(404);
     }); 
     // test failure path, trying to delete an artist or band that has albums 
-    test('DELETE /artists/1, return a 409 when deleting an artist or band with albums', async () => {
-        const res = await request(app).delete(`/artists/1`);
+    test('DELETE /artists/:id, return a 409 when deleting an artist or band with albums', async () => {
+        const res = await request(app).delete(`/artists/${seededArtistWithAlbumsId}`);
         expect(res.status).toBe(409);
     });
 });

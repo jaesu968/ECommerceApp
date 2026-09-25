@@ -8,14 +8,24 @@ const newAlbum = {
     name: 'Test Album',
     genre: 'Test Genre',
     price: '9.99',
-    artist_band_id: 1
+    artist_band_id: null // set in beforeAll from the seeded artist
 };
 
-// variable to hold created id 
-let createdId; 
+// variable to hold created id
+let createdId;
+// seeded rows are looked up by name, because their ids change whenever the seed is re-run
+let seededAlbumWithSongsId;
 
-// before all set up an album that can be worked with 
+// before all set up an album that can be worked with
 beforeAll(async () => {
+    const artist = await db.query("SELECT id FROM artist_band WHERE name = 'The Midnight Signal'");
+    const album = await db.query("SELECT id FROM albums WHERE name = 'Neon Overpass'");
+    if (!artist.rows[0] || !album.rows[0]) {
+        throw new Error('Seed data missing: run psql -d PhysicalCDStore -f db/seed.sql');
+    }
+    newAlbum.artist_band_id = artist.rows[0].id;
+    seededAlbumWithSongsId = album.rows[0].id;
+
     const res = await request(app).post('/albums').send(newAlbum);
     createdId = res.body.id;
 })
@@ -78,7 +88,7 @@ describe('GET request to get albums', () => {
 
     // test the get route to get a specific album with songs 
     test('GET /albums/:id, returns a specific album with songs', async () => {
-        const seededAlbum = await request(app).get('/albums/1');
+        const seededAlbum = await request(app).get(`/albums/${seededAlbumWithSongsId}`);
         expect(seededAlbum.body.songs.length).toBeGreaterThan(0);
     })
     // test failure path for when an invalid album id is passed 
@@ -167,7 +177,7 @@ describe('DELETE request to delete an album', () => {
     });
     // test where a seeded album with songs 
     test('DELETE /albums/:id, return a 409 status code when trying to delete an album with songs', async () => {
-        const response = await request(app).delete('/albums/1');
+        const response = await request(app).delete(`/albums/${seededAlbumWithSongsId}`);
         expect(response.statusCode).toBe(409);
     })
 });
