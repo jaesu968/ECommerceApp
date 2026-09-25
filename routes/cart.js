@@ -44,6 +44,7 @@ const db = require('../db/pool'); // database to work with db pool
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/CartDetail' }
+ *       400: { $ref: '#/components/responses/BadRequest' }
  *       401: { $ref: '#/components/responses/Unauthorized' }
  *       403: { $ref: '#/components/responses/Forbidden' }
  *       404: { $ref: '#/components/responses/NotFound' }
@@ -71,7 +72,7 @@ const db = require('../db/pool'); // database to work with db pool
  *         description: Your cart with the new album
  *         content:
  *           application/json:
- *             schema: { $ref: '#/components/schemas/CartItemInput' }
+ *             schema: { $ref: '#/components/schemas/CartDetail' }
  *       400: { $ref: '#/components/responses/BadRequest' }
  *       401: { $ref: '#/components/responses/Unauthorized' }
  *       403: { $ref: '#/components/responses/Forbidden' }
@@ -127,6 +128,7 @@ const db = require('../db/pool'); // database to work with db pool
  *        content:
  *          application/json:
  *            schema: { $ref: '#/components/schemas/CartDetail' }
+ *      400: { $ref: '#/components/responses/BadRequest' }
  *      401: { $ref: '#/components/responses/Unauthorized' }
  *      403: { $ref: '#/components/responses/Forbidden' }
  *      404: { $ref: '#/components/responses/NotFound' }
@@ -136,13 +138,18 @@ const db = require('../db/pool'); // database to work with db pool
  * @openapi
  * /cart/{cartId}/checkout:
  *   post:
- *     summary: creates an Order
- *     description: creates an Order
+ *     summary: Creates an Order
+ *     description: Charges the payment details, turns the cart into an order, and empties the cart. Returns 400 if the cart is empty.
  *     tags: [Cart]
  *     security:
  *       - cookieAuth: []
  *     parameters:
  *       - $ref: '#/components/parameters/CartIdParam'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/CheckoutInput' }
  *     responses:
  *       201:
  *         description: Your order
@@ -151,6 +158,11 @@ const db = require('../db/pool'); // database to work with db pool
  *             schema: { $ref: '#/components/schemas/Order' }
  *       400: { $ref: '#/components/responses/BadRequest' }
  *       401: { $ref: '#/components/responses/Unauthorized' }
+ *       402:
+ *         description: Payment was declined
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
  *       403: { $ref: '#/components/responses/Forbidden' }
  *       404: { $ref: '#/components/responses/NotFound' }
  */

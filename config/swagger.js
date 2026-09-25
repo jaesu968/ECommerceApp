@@ -31,6 +31,12 @@ const options = {
                     required: true,
                     schema: { type: 'integer' }
                 },
+                OrderIdParam: {
+                    in: 'path',
+                    name: 'orderId',
+                    required: true,
+                    schema: { type: 'integer' }
+                }
             },
             schemas: {
                 AlbumInput: {
@@ -103,18 +109,8 @@ const options = {
                         customer_address: { type: 'string', maxLength: 100, example: '123 Main St'},
                         email_address: { type: 'string', maxLength: 50, example: 'x@example.com'},
                         date: { type: 'string', format: 'date-time', example: '2026-09-25T12:00:00.000Z'},
-                        status: { type: 'string', example: 'pending'},
+                        status: { type: 'string', enum: ['pending', 'paid', 'shipped', 'cancelled'], example: 'paid'},
                         total: { type: 'string', example: '18.99'},
-                    },
-                },
-                OrderItem: {
-                    type: 'object',
-                    properties: {
-                        id: { type: 'integer', example: 1},
-                        order_id: { type: 'integer', example: 1},
-                        album_id: { type: 'integer', example: 1},
-                        item_quantity: { type: 'integer', example: 1},
-                        price: { type: 'string', example: '18.99'},
                     },
                 },
                 RegisterInput: {
@@ -177,6 +173,36 @@ const options = {
                         total: { type: 'string', example: '36.00'},
                     },
                 },
+                OrderLine: {
+                    type: 'object',
+                    properties: {
+                        album_id: { type: 'integer', example: 3},
+                        name: { type: 'string', example: 'Blue Hour'},
+                        item_quantity: { type: 'integer', example: 2},
+                        price: { type: 'string', description: 'Unit price at time of purchase', example: '18.99'},
+                        line_total: { type: 'string', example: '36.00'},
+                    },
+                },
+                OrderDetail: {
+                    allOf: [
+                        { $ref: '#/components/schemas/Order' },
+                        {
+                            type: 'object',
+                            properties: {
+                                items: { type: 'array', items: { $ref: '#/components/schemas/OrderLine' } },
+                            },
+                        },
+                    ],
+                },
+                CheckoutInput: {
+                    type: 'object',
+                    required: ['card_number', 'expiry', 'cvc'],
+                    properties: {
+                        card_number: { type: 'string', pattern: '^\\d{16}$', example: '1234567890123456'},
+                        expiry: { type: 'string', pattern: '^\\d{2}/\\d{2}$', example: '12/28'},
+                        cvc: { type: 'string', pattern: '^\\d{3,4}$', example: '123'},
+                    },
+                },
                 Error: {
                     type: 'object',
                     properties: {
@@ -205,6 +231,7 @@ const options = {
             { name: 'Albums', description: 'Product catalog'},
             { name: 'Artists', description: 'Artists and bands'},
             { name: 'Cart', description: 'Shopping cart and checkout'},
+            { name: 'Orders', description: 'Order history. Read-only: orders are created by checkout.'},
         ]
     },
     apis: [path.join(__dirname, '../routes/*.js')],
