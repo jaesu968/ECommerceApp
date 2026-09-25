@@ -78,9 +78,16 @@ ALTER TABLE "cart_items" ADD CONSTRAINT cart_items_cart_album_unique UNIQUE ("ca
 
 ALTER TABLE "orders" ALTER COLUMN "date" SET DEFAULT NOW();
 
--- ran the following in the terminal to : 
+-- make sure active cart is unique to a customer , only one active cart per customer
+
+ALTER TABLE "cart" ALTER COLUMN "customer_id" SET NOT NULL;
+
+ALTER TABLE "cart" ADD CONSTRAINT cart_customer_unique UNIQUE ("customer_id");
+
+
+-- ran the following in the terminal to :
 --That UNIQUE constraint isn't just tidiness — it's what makes "add to cart" idempotent later.
 -- With it, you can write a single INSERT ... ON CONFLICT (cart_id, album_id) DO UPDATE SET item_quantity = cart_items.item_quantity + EXCLUDED.item_quantity,
--- and adding the same album twice bumps the quantity instead of duplicating the row. 
+-- and adding the same album twice bumps the quantity instead of duplicating the row.
 -- Without it you'd need a SELECT-then-branch, which has a race condition.
 
