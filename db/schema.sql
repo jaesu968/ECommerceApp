@@ -84,10 +84,21 @@ ALTER TABLE "cart" ALTER COLUMN "customer_id" SET NOT NULL;
 
 ALTER TABLE "cart" ADD CONSTRAINT cart_customer_unique UNIQUE ("customer_id");
 
+ALTER TABLE cart_items ALTER COLUMN cart_id SET NOT NULL;
+
+ALTER TABLE cart_items ALTER COLUMN item_quantity SET NOT NULL;
+
+ALTER TABLE cart_items ADD CONSTRAINT cart_items_quantity_positive CHECK (item_quantity > 0);
+
 
 -- ran the following in the terminal to :
 --That UNIQUE constraint isn't just tidiness — it's what makes "add to cart" idempotent later.
 -- With it, you can write a single INSERT ... ON CONFLICT (cart_id, album_id) DO UPDATE SET item_quantity = cart_items.item_quantity + EXCLUDED.item_quantity,
 -- and adding the same album twice bumps the quantity instead of duplicating the row.
 -- Without it you'd need a SELECT-then-branch, which has a race condition.
+-- also ran the following in the terminal to make sure cart_items quantity can't be 0 or negative:
+-- psql -d PhysicalCDStore \
+--  -c 'ALTER TABLE cart_items ALTER COLUMN cart_id SET NOT NULL;' \
+--  -c 'ALTER TABLE cart_items ALTER COLUMN item_quantity SET NOT NULL;' \
+--  -c 'ALTER TABLE cart_items ADD CONSTRAINT cart_items_quantity_positive CHECK (item_quantity > 0);'
 
