@@ -1,8 +1,3 @@
-// imports for authentication
-const express = require('express');
-const router = express.Router();
-const db = require('../db/pool'); // database to work with db pool
-
 // shared authentication middleware
 
 // ensure authenticated
