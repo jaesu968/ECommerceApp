@@ -198,8 +198,8 @@ const options = {
                     type: 'object',
                     required: ['card_number', 'expiry', 'cvc'],
                     properties: {
-                        card_number: { type: 'string', pattern: '^\\d{16}$', example: '1234567890123456'},
-                        expiry: { type: 'string', pattern: '^\\d{2}/\\d{2}$', example: '12/28'},
+                        card_number: { type: 'string', pattern: '^\\d{16}$', example: '4242424242424242'},
+                        expiry: { type: 'string', pattern: '^(0[1-9]|1[0-2])/\\d{2}$', example: '12/28'},
                         cvc: { type: 'string', pattern: '^\\d{3,4}$', example: '123'},
                     },
                 },

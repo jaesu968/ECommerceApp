@@ -65,6 +65,27 @@ async function getCartDetail(cart){
         items: items.rows,
         total: total.rows[0].total
     };
+};
+
+// helpers for payment validation
+function validatePayment({ card_number, expiry, cvc }){
+    // make sure all fields have valid strings
+    // check for valid card number
+    if(typeof card_number !== 'string' || !/^\d{16}$/.test(card_number)) return 'card_number must be 16-digit string';
+    // check for valid expiry date, should be in MM/YY format
+    if(typeof expiry !== 'string' || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) return 'expiry must be in MM/YY format';
+    // check for valid cvc, should be 3-4 digits
+    if(typeof cvc !== 'string' || !/^\d{3,4}$/.test(cvc)) return 'cvc must be 3-4 digits';
+
+    return null; // no errors
+};
+
+// test card that always declines (Stripe-style)
+const DECLINED_TEST_CARD = `4000000000000002`;
+// charge the card
+function chargeCard(card_number, amount){
+    // if the card number is not the declined test card, return success
+    return { success: card_number !== DECLINED_TEST_CARD };
 }
 
 /**
@@ -332,7 +353,7 @@ router.delete('/:cartId/items/:albumId', ensureAuthenticated, loadCart, async fu
  * @openapi
  * /cart/{cartId}/checkout:
  *   post:
- *     summary: Creates an Order
+ *     summary: Check out your cart.
  *     description: Charges the payment details, turns the cart into an order, and empties the cart. Returns 400 if the cart is empty.
  *     tags: [Cart]
  *     security:
@@ -353,7 +374,7 @@ router.delete('/:cartId/items/:albumId', ensureAuthenticated, loadCart, async fu
  *       400: { $ref: '#/components/responses/BadRequest' }
  *       401: { $ref: '#/components/responses/Unauthorized' }
  *       402:
- *         description: Payment was declined
+ *         description: Payment was declined. Use test card 4000000000000002 to trigger this.
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Error' }
@@ -361,9 +382,92 @@ router.delete('/:cartId/items/:albumId', ensureAuthenticated, loadCart, async fu
  *       404: { $ref: '#/components/responses/NotFound' }
  */
 router.post('/:cartId/checkout', ensureAuthenticated, loadCart, async function(req, res, next){
-    return res.status(501).json({
-        message: `Checkout not implemented yet`
-    });
+    // validdate payment before taking a connection from the pool
+    const paymentError = validatePayment(req.body);
+    if (paymentError) return res.status(400).json({ message: paymentError });
+
+    // variable to keep track of the client
+    let client;
+
+    // use try-catch to handle errors
+    try{
+        // make a dedicated connection, so every query below runs in the same transaction
+        client = await db.connect();
+        // start a transaction
+        await client.query('BEGIN');
+
+        // lock the cart row so 2 checkouts of the same cart can't run at once
+        await client.query('SELECT id FROM cart WHERE id = $1 FOR UPDATE', [req.cart.id]);
+
+        // count the lines and total the cart in SQL
+        const summary = await client.query(
+            `SELECT COUNT(*)::int AS line_count,
+            COALESCE(SUM(a.price * ci.item_quantity), 0)::numeric(10,2) AS total
+            FROM cart_items ci
+            JOIN albums a ON a.id = ci.album_id
+            WHERE ci.cart_id = $1`,
+            [req.cart.id]
+        );
+        // get the line count and total from the summary
+        const { line_count, total } = summary.rows[0];
+        // check for empty cart , now there is nothing buy
+        if(line_count === 0){
+            await client.query('ROLLBACK');
+            return res.status(400).json({
+                message: "Your cart is empty"
+            });
+        }
+
+        // charge the card once, only after we know there is something to pay for
+        const charge = chargeCard(req.body.card_number, total);
+        if(!charge.success){
+            await client.query('ROLLBACK');
+            return res.status(402).json({
+                message: "Payment was declined"
+            });
+        }
+
+        // create the order, snapshotting the customer's details at the time of purchase
+        const orderResult = await client.query(
+            `INSERT INTO orders (customer_id, customer_name, customer_address, email_address, status, total)
+            VALUES ($1, $2, $3, $4, 'paid', $5)
+            RETURNING id, customer_id, customer_name, customer_address, email_address, status, total`,
+            [req.user.id, req.user.name, req.user.address, req.user.email, total]
+        );
+        // grab the order and put in a variable to work with
+        const order = orderResult.rows[0];
+
+        // copy the cart lines into order_items, snapshotting each album's current price
+        await client.query(
+            `INSERT INTO order_items (order_id, album_id, item_quantity, price)
+            SELECT $1, ci.album_id, ci.item_quantity, a.price
+            FROM cart_items ci
+            JOIN albums a ON a.id = ci.album_id
+            WHERE ci.cart_id = $2`,
+            [order.id, req.cart.id]
+        );
+
+        // empty the cart
+        await client.query(
+            `DELETE FROM cart_items
+            WHERE cart_id = $1`,
+            [req.cart.id]
+        );
+
+        // commit the transaction
+        await client.query('COMMIT');
+        // return the order
+        return res.status(201).json(order);
+
+
+    } catch(err){
+        // only roll back if we actually got a connection
+        if(client) await client.query('ROLLBACK');
+        next(err);
+    } finally {
+        client.release(); // release the connection
+    }
+
 });
 
 module.exports = router;
