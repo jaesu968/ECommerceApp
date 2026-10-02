@@ -90,6 +90,23 @@ ALTER TABLE cart_items ALTER COLUMN item_quantity SET NOT NULL;
 
 ALTER TABLE cart_items ADD CONSTRAINT cart_items_quantity_positive CHECK (item_quantity > 0);
 
+-- every order must belong to a customer and have a total and valid status
+ALTER TABLE orders ALTER COLUMN customer_id SET NOT NULL;
+ALTER TABLE orders ALTER COLUMN total SET NOT NULL;
+ALTER TABLE orders ALTER COLUMN status SET NOT NULL;
+ALTER TABLE orders ADD CONSTRAINT orders_status_valid
+  CHECK (status IN ('pending','paid','shipped','cancelled'));
+
+-- every order_item must belong to an order and have an album, a positive quantity and a price
+ALTER TABLE order_items ALTER COLUMN order_id SET NOT NULL;
+ALTER TABLE order_items ALTER COLUMN album_id SET NOT NULL;
+ALTER TABLE order_items ALTER COLUMN item_quantity SET NOT NULL;
+ALTER TABLE order_items ALTER COLUMN price SET NOT NULL;
+ALTER TABLE order_items ADD CONSTRAINT order_items_quantity_positive CHECK (item_quantity > 0);
+
+
+
+
 
 -- ran the following in the terminal to :
 --That UNIQUE constraint isn't just tidiness — it's what makes "add to cart" idempotent later.

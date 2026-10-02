@@ -8,12 +8,19 @@ const { makeUser } = require('./helpers');
 let user;
 let firstCartId;
 
+// variables to keep track order
+let orderId;
+// a payment that passes validation and doesn't decline
+const validPayment = { card_number: '4242424242424242', expiry: '12/30', cvc: '123' };
+
 // before all set up a user that can be worked with
 beforeAll(async () => {
     user = await makeUser('a');
 });
 // after all clear the query and the db connection
 afterAll(async () => {
+    await db.query("DELETE FROM order_items WHERE order_id IN (SELECT o.id FROM orders o JOIN customers u ON u.id = o.customer_id WHERE u.username LIKE 'ut\\_%')");
+    await db.query("DELETE FROM orders WHERE customer_id IN (SELECT id FROM customers WHERE username LIKE 'ut\\_%')");
     await db.query("DELETE FROM cart_items WHERE cart_id IN (SELECT c.id FROM cart c JOIN customers u ON u.id = c.customer_id WHERE u.username LIKE 'ut\\_%')");
     await db.query("DELETE FROM cart WHERE customer_id IN (SELECT id FROM customers WHERE username LIKE 'ut\\_%')");
     await db.query("DELETE FROM customers WHERE username LIKE 'ut\\_%'");
@@ -166,7 +173,7 @@ describe('Cart', () => {
         expect(res.status).toBe(404);
     });
 
-    // GET route, for /cart/abc , shoudl expect 400, this guards agains the /^d+$/ regex typo
+    // GET route, for /cart/abc , should expect 400, this guards agains the /^d+$/ regex typo
     test('GET /abc should return 400', async () => {
         const cartId = 'abc'; // invalid cart id
         // set up a request
@@ -193,14 +200,112 @@ describe('Cart', () => {
         const res = await other.agent.post(`/cart/${firstCartId}/items`).send({ album_id: album.rows[0].id, item_quantity: 1 });
         // check for 403
         expect(res.status).toBe(403);
-    })
-
-    // test checkout , with placeholder since order checkout is not implemented yet, expect a 501 error
-    // this guards agains the placeholder, update when checkout ships
-    test('POST /:cartId/checkout should return 501', async () => {
-        // set up a request
-        const res = await user.agent.post(`/cart/${firstCartId}/checkout`);
-        // check for 501
-        expect(res.status).toBe(501);
     });
+
+});
+
+// testing checkout route
+describe('Checkout', () => {
+
+    // test for an empty cart , it should send back 400 error
+    test('POST /:cartId/checkout should return 400 for an empty cart', async () => {
+        // set up a request
+        const res = await user.agent.post(`/cart/${firstCartId}/checkout`).send(validPayment);
+        // check for 400
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe('Your cart is empty');
+    });
+
+    // test for a card number that does not have enough digits , should return 400
+    test('POST /:cartId/checkout should return 400 for an invalid card number', async () => {
+        // set up a request
+        const res = await user.agent.post(`/cart/${firstCartId}/checkout`).send({...validPayment, card_number: '123412341234123'});
+        // check for 400
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe('card_number must be 16-digit string');
+    });
+
+    // test for expiration to be wrong , returns a 400 and guards against the month regex
+    test('POST /:cartId/checkout should return 400 for an invalid expiration date', async () => {
+        // set up a request
+        const res = await user.agent.post(`/cart/${firstCartId}/checkout`).send({...validPayment, expiry: '13/28'});
+        // check for 400
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe('expiry must be in MM/YY format');
+    });
+
+    // test for numeric card_number, it should be a string, so expect this to return 400
+    test('POST /:cartId/checkout should return 400 for a numeric card number', async () => {
+        // set up a request
+        const res = await user.agent.post(`/cart/${firstCartId}/checkout`).send({...validPayment, card_number: 1234123412341234});
+        // check for 400
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe('card_number must be 16-digit string');
+    });
+
+    // test for a declined card , should return a 402 error , and leave the cart untouched
+    test('POST /:cartId/checkout should return 402 for a declined card', async () => {
+        // add an item to the cart
+        const album = await db.query("SELECT id FROM albums WHERE name = 'Blue Hour'");
+        await user.agent.post(`/cart/${firstCartId}/items`).send({ album_id: album.rows[0].id, item_quantity: 2 });
+        // try to check out with the test card that always declines
+        const res = await user.agent.post(`/cart/${firstCartId}/checkout`).send({...validPayment, card_number: '4000000000000002'});
+        // check for 402
+        expect(res.status).toBe(402);
+        // expect message to be 'Payment was declined'
+        expect(res.body.message).toBe('Payment was declined');
+        // the cart should be untouched, which shows the rollback worked
+        const cartRes = await user.agent.get(`/cart/${firstCartId}`);
+        expect(cartRes.status).toBe(200);
+        expect(cartRes.body.items).toHaveLength(1);
+        expect(cartRes.body.total).toBe(`36.00`);
+    });
+
+    // test for other user trying to checkout with a cart that isn't theirs , should return 403
+    test('POST /:cartId/checkout should return 403 for another user\'s cart', async () => {
+        const other = await makeUser('d');
+        // try to check out with the test card that always declines
+        const res = await other.agent.post(`/cart/${firstCartId}/checkout`).send({validPayment});
+        // check for 403
+        expect(res.status).toBe(403);
+    });
+
+    // test for a valid checkout, return 201
+    test('POST /:cartId/checkout should return 201 for a valid checkout', async () => {
+        // try to check out with the test card that always declines
+        const res = await user.agent.post(`/cart/${firstCartId}/checkout`).send(validPayment);
+        orderId = res.body.id; // save first so the snapshot test can use it
+        // check for 201
+        expect(res.status).toBe(201);
+        expect(res.body.status).toBe('paid');
+        expect(res.body.total).toBe(`36.00`);
+
+
+    });
+
+    // Test for cart being emptied
+    test('GET /:cartId is empty after checkout', async () => {
+        const res = await user.agent.get(`/cart/${firstCartId}`);
+        expect(res.status).toBe(200);
+        expect(res.body.items).toHaveLength(0);
+        expect(res.body.total).toBe(`0.00`);
+    });
+
+    // test for price snapshot , query the db directly and compare against the album's price
+    test('checkout stores each album\'s price in order_items', async () => {
+        const rows = await db.query(
+            `SELECT oi.item_quantity, oi.price, a.price AS album_price
+            FROM order_items oi JOIN albums a ON a.id = oi.album_id
+            WHERE oi.order_id = $1`,
+            [orderId]
+        );
+        // expect 1 row, quantity 2, and price equal to album_price ('18.00')
+        expect(rows.rows).toHaveLength(1);
+        expect(rows.rows[0].item_quantity).toBe(2);
+        expect(rows.rows[0].price).toBe(rows.rows[0].album_price);
+        expect(rows.rows[0].album_price).toBe(`18.00`);
+
+    });
+
+
 });
