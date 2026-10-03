@@ -13,6 +13,7 @@ const authRouter = require('./routes/auth');
 const albumsRouter = require('./routes/albums');
 const artistsRouter = require('./routes/artists');
 const cartRouter = require('./routes/cart');
+const orderRouter = require('./routes/orders');
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use('/albums', albumsRouter);
 app.use('/artists', artistsRouter);
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec)); // serve swagger
 app.use('/cart', cartRouter);
+app.use('/orders', orderRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -279,6 +279,7 @@ describe('Checkout', () => {
         expect(res.status).toBe(201);
         expect(res.body.status).toBe('paid');
         expect(res.body.total).toBe(`36.00`);
+        expect(res.body.email_address).toBe(user.creds.email_address);
 
 
     });
