@@ -18,16 +18,6 @@ function ensureSelf(req, res, next){
   next(); // move on to next middleware
 }
 
-// verify user has a valid user id
-function validateUserId(id){
-  // return an error message if id is not valid
-  // use regex to check if the id is a number
-  if(id && !(/^\d+$/.test(id))){
-    return 'Invalid user id';
-  }
-  return null;
-}
-
 // validate user body
 function validateUserBody({ name, address, email_address}){
   // validate email

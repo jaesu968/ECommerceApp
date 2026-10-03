@@ -42,12 +42,12 @@ router.post('/register', async function(req, res, next) {
     } else if (username.length > 20){
         return res.status(400).json({message: 'Username must be 20 characters or less'});
     } else if (email_address.length > 50){
-        return res.status(400).json({message: 'Email address must be less than 50 characters'});
+        return res.status(400).json({message: 'Email address must be 50 characters or less'});
     }
 
     // next use a try-catch block for db insertion
     try {
-        // store a hash of the password using bcrypt, has here so any bcrypt error reachees the next(err)
+        // store a hash of the password using bcrypt, so any bcrypt error reachees the next(err)
         const password_hash = await bcrypt.hash(password, 10);
         // make a query to insert the user into the db
         const result = await db.query("INSERT INTO customers (username, email_address, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email_address",
