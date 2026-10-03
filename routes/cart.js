@@ -431,8 +431,8 @@ router.post('/:cartId/checkout', ensureAuthenticated, loadCart, async function(r
         const orderResult = await client.query(
             `INSERT INTO orders (customer_id, customer_name, customer_address, email_address, status, total)
             VALUES ($1, $2, $3, $4, 'paid', $5)
-            RETURNING id, customer_id, customer_name, customer_address, email_address, status, total`,
-            [req.user.id, req.user.name, req.user.address, req.user.email, total]
+            RETURNING id, customer_id, customer_name, customer_address, email_address, date, status, total`,
+            [req.user.id, req.user.name, req.user.address, req.user.email_address, total]
         );
         // grab the order and put in a variable to work with
         const order = orderResult.rows[0];
