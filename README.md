@@ -10,16 +10,15 @@ Built with **Node.js, Express, PostgreSQL, Passport** (session login), **Swagger
 Requires Node.js and PostgreSQL.
 
 1. Install dependencies:
-    ```bash`
     `npm install`
 
 2. Create the database and load the schema and sample data
-- createdb PhysicalCDStore
-- psql -d PhysicalCDStore -f db/schema.sql
-- psql -d PhysicalCDStore -f db/seed.sql
+- `createdb PhysicalCDStore`
+- `psql -d PhysicalCDStore -f db/schema.sql`
+- `psql -d PhysicalCDStore -f db/seed.sql`
 
 3. Create your environment file and fill in your own values:
-- cp .env.example .env
+- `cp .env.example .env`
 - SESSION_SECRET can be any long random string. The `DB_*` variables are your PostgreSQL connection details. Never commit .env.
 
 4. Start the server
@@ -45,11 +44,11 @@ Requires Node.js and PostgreSQL.
 ## Design notes:
 - One cart per customer: This is enforced by a UNIQUE constraint. Adding an album that's already in the cart increases its quantity instead of a duplicate line.
 - Checkout is a single transaction: It locks the cart row (`SELECT ... FOR UPDATE`) so the same cart can't be checked out twice at once. If the payment is declined, everything rolls back and the cart is left untouched.
-- Orders keeps a records of the sale: Each order stores the prices and customer details at the time of purchase, so later price changes or profile edits don't change past orders.
-- Clean error codes:
+- Orders keep a record of the sale: Each order stores the prices and customer details at the time of purchase, so later price changes or profile edits don't change past orders.
+- Clear error codes:
   - `401` means you're not logged in.
   - `403` means you're logged in, but the resource belongs to someone else.
-  - `404` means the resource doesn't exist
+  - `404` means the resource doesn't exist.
   - `400` means the input is invalid.
   - `409` means the request conflicts with existing data, such as a duplicate username or deleting an artist who still has albums.
 - Passwords are hashed with bcrypt and never returned by the API.
