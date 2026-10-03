@@ -18,16 +18,6 @@ function ensureSelf(req, res, next){
   next(); // move on to next middleware
 }
 
-// verify user has a valid user id
-function validateUserId(id){
-  // return an error message if id is not valid
-  // use regex to check if the id is a number
-  if(id && !(/^\d+$/.test(id))){
-    return 'Invalid user id';
-  }
-  return null;
-}
-
 // validate user body
 function validateUserBody({ name, address, email_address}){
   // validate email
@@ -142,11 +132,7 @@ router.get('/:id', ensureAuthenticated, ensureSelf,  async function(req, res, ne
 router.put('/:id', ensureAuthenticated, ensureSelf, async function(req, res, next) {
   // grab the id from params and put into a variable for tracking
   const id = req.params.id;
-  // before the query is made, check for a malformed id using helper function above
-  const error = validateUserId(id);
-  if(error){
-    return res.status(400).json({message: error});
-  }
+
   // destructure username and email_address from req.body
   const { name, address, email_address } = req.body;
   // use helper function to validate user body
@@ -214,7 +200,7 @@ router.delete('/:id', ensureAuthenticated, ensureSelf, async function(req, res, 
   } catch (err){
     // if user has orders or items in cart, throw a 409 error
     if(err.code === '23503'){
-      return res.status(409).json({message: 'Cannot delete a user that has orders or items in cart'});
+      return res.status(409).json({message: 'Cannot delete a user who has a cart or orders'});
     }
     next(err); // anything else is a genuine server error
   }

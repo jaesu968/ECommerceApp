@@ -52,6 +52,10 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
+  // a number too large for its column is bad input, not a server error
+  if (err.code === '22003'){
+    return res.status(400).json({ message: `A number in the request is out of range`});
+  }
   const status = err.status || 500;
   if(status >= 500) console.error(err);
   res.status(status).json({

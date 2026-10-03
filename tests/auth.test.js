@@ -121,4 +121,12 @@ describe('session lifecycle', () => {
     const me = await agent.get('/users/me');
     expect(me.status).toBe(401);
   });
+
+  // test a non-string password used to crash the server inside bcrypt
+  test('rejects a numeric password with a 400 instead of crashing', async () => {
+    const res = await request(app)
+      .post('/register')
+      .send({ username: `n${stamp}`, password: 12345678, email_address: `n_${stamp}@example.com` });
+    expect(res.status).toBe(400);
+  });
 });

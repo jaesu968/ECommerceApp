@@ -188,7 +188,7 @@ router.post('/', async function(req, res, next) {
  *             $ref: '#/components/schemas/ArtistBandInput'
  *     responses:
  *       200:
- *         description: The artist or bamnd was updated
+ *         description: The artist or band was updated
  *         content:
  *           application/json:
  *             schema:
@@ -261,11 +261,11 @@ router.delete('/:id', async function(req, res, next) {
     try{
         const sql = `DELETE FROM artist_band WHERE id = $1 RETURNING id, name, genre`;
         const result = await db.query(sql, [id]);
-        // found album put into a variable
+        // found artist or band, put into a variable
         const artistBand = result.rows[0];
-        // if the album is not found, throw a 404 error
+        // if the artist or band is not found, throw a 404 error
         if(!artistBand)return res.status(404).json({message: 'Artist or Band is not found'});
-        // return the album if it is found
+        // return the artist or band
         return res.status(200).json(artistBand);
     } catch (err){
         // err.constraint to tell the user they are trying to delete an artist or band that has albums, songs, cart items, or orders (currently in user cart)

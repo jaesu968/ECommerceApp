@@ -7,7 +7,7 @@ const db = require('../db/pool'); // database to work with db pool
 function validateAlbumBody({ name, genre, price, artist_band_id}){
     // return an error message if any of the required fields are missing, or null if valid
     if(!name || price === undefined || price === null || !artist_band_id){
-        return 'Name, genre, price, are required';
+        return 'Name, price, and artist_band_id are required';
     }
     // validate price further , must be a number and must be positive
     if (isNaN(Number(price)) || Number(price) < 0){
