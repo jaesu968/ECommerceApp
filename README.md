@@ -19,7 +19,7 @@ Requires Node.js and PostgreSQL.
 
 3. Create your environment file and fill in your own values:
 - `cp .env.example .env`
-- SESSION_SECRET can be any long random string. The `DB_*` variables are your PostgreSQL connection details. Never commit .env.
+- `SESSION_SECRET` can be any long random string. The `DB_*` variables are your PostgreSQL connection details. Never commit .env.
 
 4. Start the server
 - `npm start` OR
@@ -28,13 +28,13 @@ Requires Node.js and PostgreSQL.
 ## Using the API:
 - Interactive docs are at `http://localhost:3000/api-docs`
 1. Log in with POST /login in the docs page. The session cookie is then sent automatically. (NOTE: The Authorize button doesn't apply to cookie sessions.)
-2. Checkout uses a fake payment. The test cards are as follows: `4242424242424242` succeeds , while `4000000000000002` fails (declines) giving a 402 error
+2. Checkout uses a fake payment. The test cards are as follows: `4242424242424242` succeeds, while `4000000000000002` fails (declines) giving a 402 error
 
 ## Endpoints
 - Auth: `POST /register`, `POST /login`, and `POST /logout`
 - Users: `GET /users/me`, `GET / PUT / DELETE /users/{id}`
-- Albums: `GET /POST /albums`, `GET / PUT / DELETE /albums/{id}`
-- Artists: `GET /POST /artists`, `GET / PUT / DELETE /artists/{id}`
+- Albums: `GET / POST /albums`, `GET / PUT / DELETE /albums/{id}`
+- Artists: `GET / POST /artists`, `GET / PUT / DELETE /artists/{id}`
 - Cart: `POST /cart`, `GET /cart/{cartId}`, `POST /cart/{cartId}/items`, `PUT / DELETE /cart/{cartId}/items/{albumId}`, `POST /cart/{cartId}/checkout`
 - Orders: `GET /orders`, `GET /orders/{orderId}`
 
