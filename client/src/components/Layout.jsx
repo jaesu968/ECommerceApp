@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom'; // placeholder that React Router fill
 import Header from './Header'
 import Footer from './Footer'
 
- const PageLayout = () => {
+ const Layout = () => {
     return (
         <>
             <Header></Header>
@@ -14,4 +14,4 @@ import Footer from './Footer'
     )
  }
 
- export default PageLayout;
+ export default Layout;

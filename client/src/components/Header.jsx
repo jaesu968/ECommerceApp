@@ -2,23 +2,22 @@
 
 const Header = () => {
     return (
-        <section className="header">
+        <header className="header">
             <p>The Physical CD Store</p>
             <nav aria-label="Main">
                 <ul>
                     <li>Shop</li>
-                    <li>Albums</li>
-                    <li>Artists</li>
+                    <li>Orders</li>
                 </ul>
             </nav>
-            <input aria-label="search" type="search"></input>
+            <input aria-label="search" type="search" disabled placeholder="Search products"></input>
             <nav aria-label="Account">
                 <ul>
                     <li>Log In</li>
                     <li>Cart (0)</li>
                 </ul>
             </nav>
-        </section>
+        </header>
     )
 }
 
