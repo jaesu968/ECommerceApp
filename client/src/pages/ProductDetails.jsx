@@ -9,7 +9,7 @@ const ProductDetails = () => {
         <h1>
             Product Details Page
         </h1>
-        <h1>Product: {id}</h1>
+        <p>Product: {id}</p>
         </>
     )
 }

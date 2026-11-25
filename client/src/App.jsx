@@ -1,11 +1,11 @@
 import './App.css'
-import Checkout from './pages/Checkout'
+import Layout from './components/Layout'
 
 function App() {
 
   return (
     <>
-      <Checkout></Checkout>
+      <Layout></Layout>
     </>
   )
 }

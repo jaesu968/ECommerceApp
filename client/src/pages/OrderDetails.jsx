@@ -8,7 +8,7 @@ const OrderDetails = () => {
         <h1>
             Order Details Page
         </h1>
-        <h1>Order: {id}</h1>
+        <p>Order: {id}</p>
         </>
     )
 }
