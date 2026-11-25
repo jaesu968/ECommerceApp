@@ -25,6 +25,15 @@ Requires Node.js and PostgreSQL.
 - `npm start` OR
 - `npm run dev` (restarts on file changes)
 
+## Running the client
+The React client (**React, React Router, Vite**) is in `client/`. It is in progress: the pages and navigation are in place but are not connected to the API yet. The design mockups are in `docs/mockups/`.
+
+Requires Node.js 22.13 or later. In a second terminal, from the project root:
+1. `cd client`
+2. `npm install`
+3. `npm run dev`
+4. Open `http://localhost:5173`
+
 ## Using the API:
 - Interactive docs are at `http://localhost:3000/api-docs`
 1. Log in with POST /login in the docs page. The session cookie is then sent automatically. (NOTE: The Authorize button doesn't apply to cookie sessions.)
